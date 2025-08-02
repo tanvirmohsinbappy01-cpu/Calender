@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <title>বছর অনুযায়ী ইংরেজি ক্যালেন্ডার (২০২৫-২১০০)</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f0f0;
+      margin: 10px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    #clock {
+      font-size: 60px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    #yearSelector {
+      font-size: 18px;
+      padding: 6px 10px;
+      margin-bottom: 20px;
+    }
+    .calendar-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      justify-items: center;
+      max-width: 1200px;
+      margin: 0 auto 50px;
+    }
+    .month {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+      width: 280px;
+    }
+    .month h3 {
+      margin: 0 0 10px 0;
+      background: #4caf50;
+      color: white;
+      padding: 5px;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      width: 14.28%;
+      padding: 6px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #eee;
+    }
+    .today {
+      background-color: #2e7d32;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    .friday {
+      background-color: #a5d6a7 !important;
+    }
+    .saturday {
+      background-color: #ef9a9a !important;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>২০২৫ থেকে ২১০০ সালের ইংরেজি ক্যালেন্ডার</h1>
+  <div id="clock">--:--:-- AM</div>
+
+  <select id="yearSelector" aria-label="বছর নির্বাচন করুন">
+    <!-- বছর গুলো এখানে JS দিয়ে যোগ হবে -->
+  </select>
+
+  <div class="calendar-container" id="calendarContainer"></div>
+
+  <script>
+    const months = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+    const days = ['রবি','সোম','মঙ্গল','বুধ','বৃহস্পতি','শুক্র','শনি'];
+    const today = new Date();
+
+    // ঘড়ি আপডেট ফাংশন
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const seconds = now.getSeconds().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      document.getElementById('clock').innerText = `${hours.toString().padStart(2,'0')}:${minutes}:${seconds} ${ampm}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // মাসের টেবিল জেনারেট
+    function generateMonth(year, monthIndex) {
+      const firstDay = new Date(year, monthIndex, 1).getDay();
+      const lastDate = new Date(year, monthIndex + 1, 0).getDate();
+      let table = '<table><tr>';
+      for (const d of days) table += `<th>${d}</th>`;
+      table += '</tr><tr>';
+      let dayCounter = 0;
+
+      for (let i = 0; i < firstDay; i++) {
+        table += '<td></td>';
+        dayCounter++;
+      }
+
+      for (let date = 1; date <= lastDate; date++) {
+        const thisDate = new Date(year, monthIndex, date);
+        const dayOfWeek = thisDate.getDay();
+
+        const isToday = 
+          date === today.getDate() &&
+          monthIndex === today.getMonth() &&
+          year === today.getFullYear();
+
+        let className = '';
+        if (dayOfWeek === 5) className = 'friday';
+        if (dayOfWeek === 6) className = 'saturday';
+        if (isToday) className += ' today';
+
+        table += `<td class="${className.trim()}">${date}</td>`;
+        dayCounter++;
+        if (dayCounter % 7 === 0) table += '</tr><tr>';
+      }
+
+      table += '</tr></table>';
+      return table;
+    }
+
+    // পুরো বছর জেনারেট
+    function generateYear(year) {
+      const container = document.getElementById('calendarContainer');
+      container.innerHTML = ''; // ক্লিয়ার
+
+      for(let m = 0; m < 12; m++) {
+        const div = document.createElement('div');
+        div.className = 'month';
+        div.innerHTML = `<h3>${months[m]} ${year}</h3>${generateMonth(year, m)}`;
+        container.appendChild(div);
+      }
+    }
+
+    // বছর সিলেক্টর ভরাট
+    const yearSelector = document.getElementById('yearSelector');
+    for(let y = 2025; y <= 2100; y++) {
+      const option = document.createElement('option');
+      option.value = y;
+      option.textContent = y + ' সাল';
+      yearSelector.appendChild(option);
+    }
+
+    // ডিফল্ট ২০২৫ দেখান
+    generateYear(2025);
+    yearSelector.value = 2025;
+
+    // সিলেক্ট পরিবর্তনে বছর লোড করা
+    yearSelector.addEventListener('change', () => {
+      generateYear(parseInt(yearSelector.value));
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  </script>
+
+</body>
+</html>
